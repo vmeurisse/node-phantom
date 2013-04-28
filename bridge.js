@@ -15,8 +15,8 @@ var pageId=1;
 
 function setupPushNotifications(id, page) {
 	var callbacks=['onAlert','onConfirm','onConsoleMessage','onError','onInitialized','onLoadFinished',
-	               'onLoadStarted','onPrompt','onResourceRequested','onResourceReceived','onUrlChanged',
-	               'onCallback'];
+	               'onLoadStarted','onPrompt','onResourceRequested','onResourceReceived','onResourceError',
+	               'onUrlChanged','onCallback'];
 	function push(notification){
 		controlpage.evaluate('function(){socket.emit("push",'+JSON.stringify(notification)+');}');
 	}
@@ -115,7 +115,7 @@ controlpage.onAlert=function(msg){
 			respond([id,cmdId,'pageGetDone',JSON.stringify(result)]);
 			break;
 		case 'pageSetFn':
-			page[request[3]] = eval('(' + request[4] + ')')
+			page[request[3]] = eval('(' + request[4] + ')');
 			break;
 		default:
 			console.error('unrecognized request:'+request);
