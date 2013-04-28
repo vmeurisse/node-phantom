@@ -21,14 +21,14 @@ exports.testPhantomPagePushNotifications = function(beforeExit,assert) {
 				},errOr(function() {
 					//console.log(events);
 					assert.eql(events.onLoadStarted.length, 1);
-					assert.eql(events.onUrlChanged,[url]);
+					assert.eql(events.onUrlChanged,[[url]]);
 					assert.eql(events.onResourceRequested.length, 1);
 					assert.eql(events.onResourceReceived.length, 2);
-					assert.eql(events.onResourceReceived[0].stage, 'start');
-					assert.eql(events.onResourceReceived[1].stage, 'end');
+					assert.eql(events.onResourceReceived[0][0].stage, 'start');
+					assert.eql(events.onResourceReceived[1][0].stage, 'end');
 
-					assert.eql(events.onCallback, [{ msg: "callPhantom" }]);
-					assert.eql(events.onConsoleMessage, ['POW', 'WOW']);
+					assert.eql(events.onCallback, [[{ msg: "callPhantom" }]]);
+					assert.eql(events.onConsoleMessage, [['POW'], ['WOW']]);
 
 					assert.eql(events.onError.length, 1);
 					assert.eql(events.onError[0].length, 2);
@@ -41,7 +41,7 @@ exports.testPhantomPagePushNotifications = function(beforeExit,assert) {
 						console.log(a);
 						console.log(b);
 					}, errOr(function(){
-						assert.eql(events.onConsoleMessage, ['A', 'B']);
+						assert.eql(events.onConsoleMessage, [['A'], ['B']]);
 
 						ph.createPage(errOr(function(page){
 							page.onLoadFinished = function(){
@@ -71,7 +71,7 @@ exports.testPhantomPagePushNotifications = function(beforeExit,assert) {
 		callbacks.forEach(function(cb) {
 			page[cb] = function(evt) {
 				if (!events[cb]) events[cb] = [];
-				events[cb].push(evt);
+				events[cb].push(Array.prototype.slice.call(arguments));
 			};
 		});
 		return events;
