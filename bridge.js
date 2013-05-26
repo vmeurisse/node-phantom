@@ -24,7 +24,7 @@ function setupPushNotifications(id, page) {
 		page[cb]=function(parm){
 			var notification=Array.prototype.slice.call(arguments);
 			if((cb==='onResourceRequested')&&(parm.url.indexOf('data:image')===0)) return;
-			
+
 			push([id, cb, notification]);
 		};
 	});
@@ -83,8 +83,9 @@ controlpage.onAlert=function(msg){
 			respond([id,cmdId,'pageJsInjected',JSON.stringify(result)]);
 			break;
 		case 'pageIncludeJs':
-			page.includeJs(request[3]);
-			respond([id,cmdId,'pageJsIncluded']);
+			page.includeJs(request[3], function(){
+				respond([id,cmdId,'pageJsIncluded']);
+			});
 			break;
 		case 'pageSendEvent':
 			page.sendEvent(request[3],request[4],request[5]);
@@ -97,6 +98,10 @@ controlpage.onAlert=function(msg){
 		case 'pageEvaluate':
 			var result=page.evaluate.apply(page,request.slice(3));
 			respond([id,cmdId,'pageEvaluated',JSON.stringify(result)]);
+			break;
+        case 'pageEvaluateAsync':
+			page.evaluateAsync.apply(page,request.slice(3));
+			respond([id,cmdId,'pageEvaluatedAsync']);
 			break;
 		case 'pageRender':
 			page.render(request[3]);

@@ -30,6 +30,9 @@ module.exports={
 				return console.warn('phantom stderr: '+data);
 			});
 			var exitCode=0;
+			phantom.on('error',function(){
+				exitCode=-1;
+			});
 			phantom.on('exit',function(code){
 				exitCode=code;
 			});
@@ -111,6 +114,9 @@ module.exports={
 							evaluate:function(evaluator,callback){
 								request(socket,[id,'pageEvaluate',evaluator.toString()].concat(Array.prototype.slice.call(arguments,2)),callbackOrDummy(callback));
 							},
+                            evaluateAsync:function(evaluator,callback){
+								request(socket,[id,'pageEvaluateAsync',evaluator.toString()].concat(Array.prototype.slice.call(arguments,2)),callbackOrDummy(callback));
+							},
 							set:function(name,value,callback){
 								request(socket,[id,'pageSet',name,value],callbackOrDummy(callback));
 							},
@@ -162,6 +168,7 @@ module.exports={
 					case 'pageRendered':
 					case 'pageEventSent':
 					case 'pageFileUploaded':
+					case 'pageEvaluatedAsync':
 						cmds[cmdId].cb(null);
 						delete cmds[cmdId];
 						break;
@@ -188,10 +195,25 @@ module.exports={
 					},
 					exit:function(callback){
 						request(socket,[0,'exit'],callbackOrDummy(callback));
-					}
+					},
+					on: function(){
+						phantom.on.apply(phantom, arguments);
+					},
+					_phantom: phantom
 				};
 			
 				callback(null,proxy);
+			});
+
+			// An exit event listener that is registered AFTER the phantomjs process
+			// is successfully created.
+			phantom.on('exit', function(code, signal){
+
+				// Close server upon phantom crash.
+				if(code !== 0 && signal === null){
+					console.warn('phantom crash: code '+code);
+					server.close();
+				}
 			});
 		});
 	}
