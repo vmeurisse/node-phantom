@@ -21,12 +21,16 @@ function setupPushNotifications(id, page) {
 		controlpage.evaluate('function(){socket.emit("push",'+JSON.stringify(notification)+');}');
 	}
 	callbacks.forEach(function(cb) {
-		page[cb]=function(parm){
-			var notification=Array.prototype.slice.call(arguments);
-			if((cb==='onResourceRequested')&&(parm.url.indexOf('data:image')===0)) return;
-
-			push([id, cb, notification]);
-		};
+		try {
+			page[cb]=function(parm){
+				var notification=Array.prototype.slice.call(arguments);
+				if((cb==='onResourceRequested')&&(parm.url.indexOf('data:image')===0)) return;
+				
+				push([id, cb, notification]);
+			};
+		} catch(e) {
+			console.log('[WARN] ' + cb + ' is not supported');
+		}
 	});
 }
 
@@ -99,7 +103,7 @@ controlpage.onAlert=function(msg){
 			var result=page.evaluate.apply(page,request.slice(3));
 			respond([id,cmdId,'pageEvaluated',JSON.stringify(result)]);
 			break;
-        case 'pageEvaluateAsync':
+		case 'pageEvaluateAsync':
 			page.evaluateAsync.apply(page,request.slice(3));
 			respond([id,cmdId,'pageEvaluatedAsync']);
 			break;
