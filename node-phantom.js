@@ -9,6 +9,12 @@ function callbackOrDummy(callback){
 	return callback;
 }
 
+function log(prefix, msg){
+	msg = '' + msg;
+	if (msg.slice(-1) === '\n') msg = msg.slice(0, -1);
+	console.log(prefix + msg.split('\n').join('\n' + prefix));
+}
+
 module.exports={
 	create:function(callback,options){
 		if(options===undefined)options={};
@@ -23,12 +29,10 @@ module.exports={
 			args=args.concat([__dirname + '/bridge.js', port]);
 
 			var phantom=child.spawn(options.phantomPath,args);
-			phantom.stdout.on('data',function(data){
-				return console.log('phantom stdout: '+data);
-			});
-			phantom.stderr.on('data',function(data){
-				return console.warn('phantom stderr: '+data);
-			});
+			
+			phantom.stdout.on('data',log.bind(null, 'phantom stdout: '));
+			phantom.stderr.on('data',log.bind(null, 'phantom stderr: '));
+
 			var exitCode=0;
 			phantom.on('error',function(){
 				exitCode=-1;
