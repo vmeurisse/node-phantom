@@ -201,11 +201,14 @@ module.exports={
 					exit:function(callback){
 						request(socket,[0,'exit'],callbackOrDummy(callback));
 					},
-					on: function(){
-						phantom.on.apply(phantom, arguments);
-					},
 					_phantom: phantom
 				};
+
+				var proxyfied = ['addListener', 'on', 'once', 'removeListener', 'removeAllListeners', 'setMaxListeners', 'listeners'];
+				for (var i = 0; i < proxyfied.length; i++) {
+					var method = proxyfied[i];
+					proxy[method] = phantom[method].bind(phantom);
+				}
 			
 				callback(null,proxy);
 			});
