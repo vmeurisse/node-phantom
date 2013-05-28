@@ -33,15 +33,16 @@ module.exports={
 			phantom.stdout.on('data',log.bind(null, 'phantom stdout: '));
 			phantom.stderr.on('data',log.bind(null, 'phantom stderr: '));
 
-			var exitCode=0;
-			phantom.on('error',function(){
-				exitCode=-1;
-			});
-			phantom.on('exit',function(code){
-				exitCode=code;
-			});
+			var hasErrors = false;
+			var onError = function () {
+				hasErrors = true;
+			}
+			phantom.on('error', onError);
+			phantom.on('exit', onError);
 			setTimeout(function(){ //wait a bit to see if the spawning of phantomjs immediately fails due to bad path or similar
-				callback(exitCode!==0,phantom);
+				phantom.removeListener('error', onError);
+				phantom.removeListener('exit', onError);
+				callback(hasErrors, phantom);
 			},100);
 		}
 		
@@ -118,7 +119,7 @@ module.exports={
 							evaluate:function(evaluator,callback){
 								request(socket,[id,'pageEvaluate',evaluator.toString()].concat(Array.prototype.slice.call(arguments,2)),callbackOrDummy(callback));
 							},
-                            evaluateAsync:function(evaluator,callback){
+							evaluateAsync:function(evaluator,callback){
 								request(socket,[id,'pageEvaluateAsync',evaluator.toString()].concat(Array.prototype.slice.call(arguments,2)),callbackOrDummy(callback));
 							},
 							set:function(name,value,callback){
