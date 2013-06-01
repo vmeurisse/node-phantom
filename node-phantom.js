@@ -199,6 +199,7 @@ module.exports={
 						request(socket,[0,'addCookie', cookie],callbackOrDummy(callback));
 					},
 					exit:function(callback){
+						phantom.removeListener('exit', crash);
 						request(socket,[0,'exit'],callbackOrDummy(callback));
 					},
 					_phantom: phantom
@@ -215,14 +216,12 @@ module.exports={
 
 			// An exit event listener that is registered AFTER the phantomjs process
 			// is successfully created.
-			phantom.on('exit', function(code, signal){
-
+			var crash = function(code, signal){
 				// Close server upon phantom crash.
-				if(code !== 0 && signal === null){
-					console.warn('phantom crash: code '+code);
-					server.close();
-				}
-			});
+				console.warn('phantom crash: code '+code+', signal '+signal);
+				server.close();
+			};
+			phantom.on('exit', crash);
 		});
 	}
 };
